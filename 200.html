@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAKPAD - Realtime Notes</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="loader" class="loader">
+        <div class="spinner"></div>
+    </div>
+    
+    <header class="topbar">
+        <div class="logo">MAKPAD <span id="path-display" class="path">/</span></div>
+        <div id="status" class="status">Online</div>
+        <div id="nav-cat" class="cat-track hidden">
+            <div class="cat"></div>
+        </div>
+    </header>
+
+    <main id="app-editor" class="editor-container hidden">
+        <textarea id="editor" spellcheck="false" placeholder="Loading..."></textarea>
+    </main>
+
+    <main id="homepage" class="home-container hidden">
+        <div class="home-content">
+            <h1>O seu bloco<br>de notas no Terminal<br>e na Nuvem.</h1>
+            <p>O <b>MAKPAD</b> é uma ferramenta 100% gratuita que sincroniza textos em tempo real, sem necessidade de logins ou configurações. Ele é uma evolução projetada tanto para a <b>Web</b> quanto para o seu <b>Terminal</b>.</p>
+
+            <div class="jump-box">
+                <input type="text" id="path-input" placeholder="exemplo: /meu_texto" spellcheck="false" autocomplete="off" />
+                <button onclick="jumpToPath()">Acessar Arquivo</button>
+            </div>
+
+            <div class="install-section">
+                <h2>📦 Instalação do CLI "One-Line"</h2>
+                
+                <div class="os-block">
+                    <h3>🐧 Linux & macOS</h3>
+                    <div class="code-box">
+                        <code>curl -sL https://makpad.surge.sh/install.sh | bash</code>
+                    </div>
+                </div>
+
+                <div class="os-block">
+                    <h3>🪟 Windows (PowerShell)</h3>
+                    <div class="code-box">
+                        <code>iwr -useb https://makpad.surge.sh/install.ps1 | iex</code>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="install-section">
+                <h2>Como Usar no Terminal:</h2>
+                <div class="code-box use-examples">
+                    <code>
+<span style="color: #94a3b8"># Ler todo o conteúdo de um arquivo da nuvem no terminal:</span>
+$ makpad <b>exemplo</b>
+
+<span style="color: #94a3b8"># Substituir o conteúdo do arquivo via Pipe ou String:</span>
+$ echo "Hello MAKPAD" | makpad <b>exemplo</b>
+$ makpad <b>exemplo</b> "Pausa pro café!"
+
+<span style="color: #94a3b8"># Anexar ao invés de deletar (Append via Pipe):</span>
+$ echo "Linha extra" | makpad <b>exemplo</b> --append
+                    </code>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

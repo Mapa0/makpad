@@ -1,0 +1,36 @@
+param(
+    [Parameter(Position=0, Mandatory=$true)]
+    [string]$BlockName,
+    
+    [Parameter(Position=1)]
+    [string]$Text = $null,
+    
+    [switch]$Append
+)
+
+$url = "https://kvdb.io/PN9BCNTq5bPDAQwk9gugKQ/$BlockName"
+
+if ([Console]::IsInputRedirected) {
+    # Piped input via standard input
+    $PipedText = [Console]::In.ReadToEnd()
+    if ($Append) {
+        $Current = $null
+        try {
+            $Current = (Invoke-WebRequest -Uri $url -Method GET -UseBasicParsing -ErrorAction Ignore).Content
+        } catch {}
+        
+        if ($Current) { 
+            $PipedText = $Current + "`n" + $PipedText 
+        }
+    }
+    Invoke-WebRequest -Uri $url -Method POST -BodyMode "Raw" -Body $PipedText -ContentType "text/plain" -UseBasicParsing | Out-Null
+} else {
+    if ($Text) {
+        Invoke-WebRequest -Uri $url -Method POST -Body $Text -ContentType "text/plain" -UseBasicParsing | Out-Null
+    } else {
+        try {
+            $Output = (Invoke-WebRequest -Uri $url -Method GET -UseBasicParsing -ErrorAction Ignore).Content
+            if ($Output) { Write-Host $Output }
+        } catch {}
+    }
+}

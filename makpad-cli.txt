@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Configuration
+BUCKET_URL="https://kvdb.io/PN9BCNTq5bPDAQwk9gugKQ"
+
+if [ -z "$1" ]; then
+    echo "Uso: makpad <nome_do_bloco> [-a|--append]"
+    echo "Uso rápido:"
+    echo "  • Lendo:    makpad exemplo"
+    echo "  • Gravando: echo 'ola mundo' | makpad exemplo"
+    echo "  • Anexando: echo 'ola mundo' | makpad exemplo --append"
+    echo "  • P/ string: makpad exemplo \"Seu texto aqui\""
+    exit 1
+fi
+
+BLOCK_NAME="$1"
+
+# Check if stdin is NOT a terminal (has piped / redirected data)
+if [ ! -t 0 ]; then
+    INPUT_TEXT=$(cat)
+    
+    if [ "$2" == "-a" ] || [ "$2" == "--append" ]; then
+        # Fetch current content, append, and save
+        CURRENT_TEXT=$(curl -s -X GET "${BUCKET_URL}/${BLOCK_NAME}")
+        if [ ! -z "$CURRENT_TEXT" ]; then
+            NEW_TEXT="${CURRENT_TEXT}"$'\n'"${INPUT_TEXT}"
+        else
+            NEW_TEXT="${INPUT_TEXT}"
+        fi
+        curl -s -X POST --data-binary "${NEW_TEXT}" "${BUCKET_URL}/${BLOCK_NAME}"
+    else
+        # Overwrite
+        curl -s -X POST --data-binary "${INPUT_TEXT}" "${BUCKET_URL}/${BLOCK_NAME}"
+    fi
+else
+    # If there's an explicit second argument (string text)
+    if [ ! -z "$2" ] && [ "$2" != "-a" ] && [ "$2" != "--append" ]; then
+        curl -s -X POST --data-binary "$2" "${BUCKET_URL}/${BLOCK_NAME}"
+    else
+        # Just read the text and output it
+        OUTPUT=$(curl -s -X GET "${BUCKET_URL}/${BLOCK_NAME}")
+        if [ ! -z "$OUTPUT" ]; then
+            echo "$OUTPUT"
+        fi
+    fi
+fi
