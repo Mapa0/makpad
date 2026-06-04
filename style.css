@@ -64,11 +64,34 @@ body::before {
     gap: 0.5rem;
 }
 
+.logo-home {
+    color: inherit;
+    text-decoration: none;
+}
+
+.logo-home:hover {
+    color: var(--accent-color);
+}
+
 .logo .path {
     color: var(--accent-color);
     font-family: var(--font-mono);
     font-size: 1rem;
     font-weight: 400;
+    border-radius: 6px;
+    min-width: 2ch;
+    outline: none;
+    padding: 0.25rem 0.35rem;
+    white-space: nowrap;
+}
+
+.logo .path[contenteditable="true"] {
+    cursor: text;
+}
+
+.logo .path[contenteditable="true"]:focus {
+    background: rgba(56, 189, 248, 0.12);
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35);
 }
 
 .status {

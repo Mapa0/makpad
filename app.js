@@ -35,6 +35,13 @@ let isTyping = false;
 let typingTimeout = null;
 let lastSavedContent = '';
 
+function normalizePathInput(value) {
+    let nextPath = String(value || '').trim();
+    if (!nextPath) return '/';
+    nextPath = nextPath.replace(/^\/+/, '');
+    return '/' + nextPath;
+}
+
 if (!slug || slug === 'index.html' || slug === '200.html') {
     // Show Homepage
     loader.classList.add('hidden');
@@ -48,6 +55,34 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
     document.getElementById('app-editor').classList.remove('hidden');
     document.getElementById('nav-cat').classList.add('hidden');
     pathDisplay.textContent = '/' + slug;
+    pathDisplay.contentEditable = 'true';
+
+    function selectPathText() {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(pathDisplay);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+
+    function navigateToEditedPath() {
+        window.location.href = normalizePathInput(pathDisplay.textContent);
+    }
+
+    pathDisplay.addEventListener('focus', selectPathText);
+    pathDisplay.addEventListener('click', selectPathText);
+    pathDisplay.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            navigateToEditedPath();
+        }
+
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            pathDisplay.textContent = '/' + slug;
+            pathDisplay.blur();
+        }
+    });
 
     const filesApiUrl = '/api/files/' + encodeURIComponent(slug);
 

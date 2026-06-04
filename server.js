@@ -124,6 +124,10 @@ const upload = multer({
   limits: { fileSize: MAX_FILE_SIZE, files: 1 },
 });
 
+function asyncHandler(handler) {
+  return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
+}
+
 function fileResponse(file) {
   const expiresAt = file.createdAt + FILE_TTL_MS;
   return {
@@ -140,7 +144,7 @@ function findFileById(slug, id) {
   return files.find((item) => item.id === id);
 }
 
-app.get('/api/download/:id', async (req, res) => {
+app.get('/api/download/:id', asyncHandler(async (req, res) => {
   const slug = normalizeSlug(req.query.slug);
   if (!slug) return res.status(404).json({ error: 'Arquivo não encontrado.' });
 
@@ -157,17 +161,17 @@ app.get('/api/download/:id', async (req, res) => {
   }
 
   return res.download(path.join(slugDir(slug), file.storedName), file.originalName);
-});
+}));
 
-app.get('/api/files/:slug(*)', async (req, res) => {
+app.get('/api/files/:slug(*)', asyncHandler(async (req, res) => {
   const slug = normalizeSlug(req.params.slug);
   if (!slug) return res.json({ files: [] });
 
   const files = (await cleanupSlug(slug)).map(fileResponse);
   res.json({ files });
-});
+}));
 
-app.post('/api/files/:slug(*)', upload.single('file'), async (req, res) => {
+app.post('/api/files/:slug(*)', upload.single('file'), asyncHandler(async (req, res) => {
   const slug = normalizeSlug(req.params.slug);
   if (!slug || !req.file) return res.status(400).json({ error: 'Arquivo inválido.' });
   if (!s3) return res.status(500).json({ error: 'S3 não configurado.' });
@@ -192,11 +196,17 @@ app.post('/api/files/:slug(*)', upload.single('file'), async (req, res) => {
   files.push(record);
   writeMetadata(slug, files);
   res.status(201).json({ file: fileResponse(record) });
-});
+}));
 
 app.use(express.static(__dirname));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '200.html'));
+});
+
+app.use((err, req, res, next) => {
+  console.error(err);
+  if (res.headersSent) return next(err);
+  res.status(500).json({ error: 'Erro interno ao processar a solicitação.' });
 });
 
 cleanupAllUploads();

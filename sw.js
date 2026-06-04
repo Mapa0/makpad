@@ -1,4 +1,4 @@
-const CACHE_NAME = 'makpad-pwa-v1';
+const CACHE_NAME = 'makpad-pwa-v2';
 const CORE_ASSETS = [
   '/',
   '/200.html',
