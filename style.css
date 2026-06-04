@@ -111,6 +111,86 @@ body::before {
     padding-top: 60px; /* Space for topbar */
     position: relative;
     z-index: 1;
+    display: grid;
+    grid-template-rows: auto 1fr;
+}
+
+.attachments-panel {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1rem 2rem 0;
+    border-bottom: 1px solid var(--glass-border);
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.attachments-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.attachments-header h2 {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.attachments-header p,
+.files-empty,
+.file-info span {
+    color: #94a3b8;
+    font-size: 0.78rem;
+}
+
+.upload-button,
+.download-button {
+    border: 1px solid rgba(56, 189, 248, 0.45);
+    border-radius: 8px;
+    color: #e0f2fe;
+    cursor: pointer;
+    font-size: 0.82rem;
+    line-height: 1;
+    padding: 0.65rem 0.8rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.upload-button:hover,
+.download-button:hover {
+    background: rgba(56, 189, 248, 0.14);
+}
+
+.files-list {
+    display: grid;
+    gap: 0.5rem;
+    max-height: 132px;
+    overflow-y: auto;
+    padding-bottom: 1rem;
+}
+
+.file-row {
+    align-items: center;
+    background: rgba(0, 0, 0, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 0.75rem;
+}
+
+.file-info {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.file-info strong {
+    font-size: 0.86rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 textarea {

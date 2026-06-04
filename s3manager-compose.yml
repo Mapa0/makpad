@@ -1,0 +1,53 @@
+name: s3manager
+
+services:
+  s3manager:
+    image: cloudlena/s3manager
+    container_name: s3manager
+    restart: unless-stopped
+    labels:
+      icon: https://makpad.mapazero.com/icons/s3manager.png
+    ports:
+      - "8082:8080"
+    environment:
+      PORT: "8080"
+      ENDPOINT: host.docker.internal:3900
+      REGION: garage
+      USE_SSL: "false"
+      SIGNATURE_TYPE: V4
+      ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
+      SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+      BUCKET_NAME: makpad-attachments
+      ALLOW_DELETE: "true"
+      FORCE_DOWNLOAD: "true"
+      LIST_RECURSIVE: "false"
+      TIMEOUT: "600"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    x-casaos:
+      ports:
+        - container: "8080"
+          description:
+            en_us: Web UI
+
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  main: s3manager
+  author: Cloudlena
+  category: Utilities
+  developer: Cloudlena
+  icon: https://makpad.mapazero.com/icons/s3manager.png
+  thumbnail: https://makpad.mapazero.com/icons/s3manager.png
+  description:
+    en_us: Web interface for browsing the local Garage S3 bucket used by MAKPAD attachments.
+  tagline:
+    en_us: S3 bucket browser for Garage
+  title:
+    en_us: S3 Manager
+  store_app_id: s3manager
+  port_map: "8082"
+  scheme: http
+  index: /
+  is_uncontrolled: false

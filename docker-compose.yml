@@ -1,0 +1,57 @@
+name: makpad
+
+services:
+  makpad:
+    image: makpad-makpad:latest
+    container_name: makpad
+    restart: unless-stopped
+    labels:
+      icon: https://makpad.mapazero.com/icons/makpad.png
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: "3000"
+      DATA_DIR: /app/data
+      FILE_TTL_MS: "3600000"
+      MAX_FILE_SIZE: "104857600"
+      S3_ENDPOINT: http://host.docker.internal:3900
+      S3_REGION: garage
+      S3_BUCKET: makpad-attachments
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+      S3_FORCE_PATH_STYLE: "true"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /DATA/AppData/makpad:/app/data
+    x-casaos:
+      ports:
+        - container: "3000"
+          description:
+            en_us: Web port
+      volumes:
+        - container: /app/data
+          description:
+            en_us: Attachment metadata and expiration state
+
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  main: makpad
+  author: MapaZero
+  category: Utilities
+  developer: MapaZero
+  icon: https://makpad.mapazero.com/icons/makpad.png
+  thumbnail: https://makpad.mapazero.com/icons/makpad.png
+  description:
+    en_us: Realtime cloud notepad with per-path attachments that expire after one hour.
+  tagline:
+    en_us: Realtime notepad and temporary file sharing
+  title:
+    en_us: MAKPAD
+  store_app_id: makpad
+  port_map: "3000"
+  scheme: http
+  index: /
+  is_uncontrolled: false

@@ -3,6 +3,16 @@ const editor = document.getElementById('editor');
 const statusEl = document.getElementById('status');
 const pathDisplay = document.getElementById('path-display');
 const loader = document.getElementById('loader');
+const fileInput = document.getElementById('file-input');
+const filesList = document.getElementById('files-list');
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js').catch(function (error) {
+            console.error('Service worker registration failed', error);
+        });
+    });
+}
 
 // Determine slug
 let slug = window.location.pathname.substring(1).replace(/\/$/, "");
@@ -38,6 +48,87 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
     document.getElementById('app-editor').classList.remove('hidden');
     document.getElementById('nav-cat').classList.add('hidden');
     pathDisplay.textContent = '/' + slug;
+
+    const filesApiUrl = '/api/files/' + encodeURIComponent(slug);
+
+    function formatBytes(bytes) {
+        if (!bytes) return '0 B';
+        const units = ['B', 'KB', 'MB', 'GB'];
+        const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+        const value = bytes / Math.pow(1024, index);
+        return `${value.toFixed(value >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function renderFiles(files) {
+        if (!files.length) {
+            filesList.innerHTML = '<div class="files-empty">Nenhum arquivo anexado.</div>';
+            return;
+        }
+
+        filesList.innerHTML = files.map((file) => {
+            const minutesLeft = Math.max(0, Math.ceil((file.expiresAt - Date.now()) / 60000));
+            const safeName = escapeHtml(file.name);
+            const downloadUrl = `/api/download/${encodeURIComponent(file.id)}?slug=${encodeURIComponent(slug)}`;
+
+            return `
+                <article class="file-row">
+                    <div class="file-info">
+                        <strong title="${safeName}">${safeName}</strong>
+                        <span>${formatBytes(file.size)} · expira em ${minutesLeft} min</span>
+                    </div>
+                    <a class="download-button" href="${downloadUrl}">Baixar</a>
+                </article>
+            `;
+        }).join('');
+    }
+
+    async function fetchFiles() {
+        try {
+            const response = await fetch(filesApiUrl);
+            if (!response.ok) throw new Error('Failed to load files');
+            const data = await response.json();
+            renderFiles(data.files || []);
+        } catch (e) {
+            filesList.innerHTML = '<div class="files-empty">Não foi possível carregar os anexos.</div>';
+        }
+    }
+
+    async function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        statusEl.innerHTML = 'Uploading...';
+        statusEl.className = 'status saving';
+
+        try {
+            const response = await fetch(filesApiUrl, {
+                method: 'POST',
+                body: formData
+            });
+            if (!response.ok) throw new Error('Upload failed');
+            await fetchFiles();
+            statusEl.innerHTML = 'Online';
+            statusEl.className = 'status';
+        } catch (e) {
+            statusEl.innerHTML = 'Error';
+            statusEl.className = 'status error';
+        } finally {
+            fileInput.value = '';
+        }
+    }
+
+    fileInput?.addEventListener('change', function () {
+        const [file] = fileInput.files || [];
+        if (file) uploadFile(file);
+    });
 
     async function fetchContent() {
         if (isTyping) return; // Don't fetch while user is typing
@@ -101,8 +192,10 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
         loader.classList.add('hidden');
         editor.placeholder = "Comece a digitar aqui...";
         editor.focus();
+        fetchFiles();
         
         // Start polling every 2 seconds
         setInterval(fetchContent, 2000);
+        setInterval(fetchFiles, 30000);
     });
 }

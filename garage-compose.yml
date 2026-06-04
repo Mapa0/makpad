@@ -1,0 +1,62 @@
+name: garage
+
+services:
+  garage:
+    image: dxflrs/garage:v2.3.0
+    container_name: garage
+    restart: unless-stopped
+    labels:
+      icon: https://makpad.mapazero.com/icons/garage.png
+    command: ["/garage", "server", "--single-node", "--default-bucket"]
+    ports:
+      - "3900:3900"
+      - "3903:3903"
+    environment:
+      GARAGE_CONFIG_FILE: /etc/garage.toml
+      GARAGE_DEFAULT_ACCESS_KEY: ${S3_ACCESS_KEY_ID}
+      GARAGE_DEFAULT_SECRET_KEY: ${S3_SECRET_ACCESS_KEY}
+      GARAGE_DEFAULT_BUCKET: makpad-attachments
+    volumes:
+      - /DATA/AppData/garage/config/garage.toml:/etc/garage.toml
+      - /DATA/AppData/garage/metadata:/var/lib/garage/meta
+      - /DATA/AppData/garage/data:/var/lib/garage/data
+    x-casaos:
+      ports:
+        - container: "3900"
+          description:
+            en_us: S3 API
+        - container: "3903"
+          description:
+            en_us: Admin API
+      volumes:
+        - container: /var/lib/garage/meta
+          description:
+            en_us: Garage metadata
+        - container: /var/lib/garage/data
+          description:
+            en_us: Garage object data
+        - container: /etc/garage.toml
+          description:
+            en_us: Garage config
+
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  main: garage
+  author: Deuxfleurs
+  category: Utilities
+  developer: Deuxfleurs
+  icon: https://makpad.mapazero.com/icons/garage.png
+  thumbnail: https://makpad.mapazero.com/icons/garage.png
+  description:
+    en_us: S3-compatible object storage for MAKPAD attachments, persisted under /DATA/AppData/garage.
+  tagline:
+    en_us: Local S3-compatible object storage
+  title:
+    en_us: Garage S3
+  store_app_id: garage
+  port_map: "3900"
+  scheme: http
+  index: /
+  is_uncontrolled: false

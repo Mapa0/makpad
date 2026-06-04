@@ -8,7 +8,7 @@ else
     SUDO=""
 fi
 
-$SUDO curl -sL https://makpad.surge.sh/makpad-cli.txt -o /usr/local/bin/makpad
+$SUDO curl -sL https://makpad.mapazero.com/makpad-cli.txt -o /usr/local/bin/makpad
 $SUDO chmod +x /usr/local/bin/makpad
 echo "-----------------------------------"
 echo "✅ MAKPAD instalado com sucesso!"

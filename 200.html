@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MAKPAD - Realtime Notes</title>
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon/makpad-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon/makpad-16.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
@@ -21,6 +26,19 @@
     </header>
 
     <main id="app-editor" class="editor-container hidden">
+        <section class="attachments-panel" aria-label="Arquivos anexados">
+            <div class="attachments-header">
+                <div>
+                    <h2>Anexos</h2>
+                    <p>Arquivos desta conversa expiram em 1 hora.</p>
+                </div>
+                <label class="upload-button" for="file-input">Anexar</label>
+                <input id="file-input" type="file" class="hidden" />
+            </div>
+            <div id="files-list" class="files-list">
+                <div class="files-empty">Nenhum arquivo anexado.</div>
+            </div>
+        </section>
         <textarea id="editor" spellcheck="false" placeholder="Loading..."></textarea>
     </main>
 
@@ -40,14 +58,14 @@
                 <div class="os-block">
                     <h3>🐧 Linux & macOS</h3>
                     <div class="code-box">
-                        <code>curl -sL https://makpad.surge.sh/install.sh | bash</code>
+                        <code>curl -sL https://makpad.mapazero.com/install.sh | bash</code>
                     </div>
                 </div>
 
                 <div class="os-block">
                     <h3>🪟 Windows (PowerShell)</h3>
                     <div class="code-box">
-                        <code>iwr -useb https://makpad.surge.sh/install.ps1 | iex</code>
+                        <code>iwr -useb https://makpad.mapazero.com/install.ps1 | iex</code>
                     </div>
                 </div>
             </div>

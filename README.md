@@ -1,11 +1,15 @@
+<p align="center">
+  <img src="https://makpad.mapazero.com/icons/makpad.png" alt="MAKPAD" width="160">
+</p>
+
 # 📝 MAKPAD — Realtime Cloud Notepad & CLI
 
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?style=for-the-badge&logo=vercel)](https://makpad.surge.sh)
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?style=for-the-badge&logo=vercel)](https://makpad.mapazero.com)
 [![Platform](https://img.shields.io/badge/platform-Web%20%7C%20Linux%20%7C%20macOS%20%7C%20Windows-blue?style=for-the-badge)](#)
 
 > **MAKPAD** is a minimalist, ultra-fast, and realtime cloud notepad service. Inspired by Dontpad, it allows you to instantly sync text between your browser and your terminal without any login, configuration, or hassle. 
 
-Just access any path (e.g., `makpad.surge.sh/my_notes`) to start writing instantly!
+Just access any path (e.g., `makpad.mapazero.com/my_notes`) to start writing instantly!
 
 ---
 
@@ -14,6 +18,7 @@ Just access any path (e.g., `makpad.surge.sh/my_notes`) to start writing instant
 - **Instant Synchronization:** Write on the web, see in the terminal. Pipe from the terminal, see on the web.
 - **Zero Configuration:** No accounts, no passwords, no setup. Just pick a URL/slug and go.
 - **Cross-Platform CLI:** Native-like experience for Linux, macOS, and Windows.
+- **Installable Web App:** Add MAKPAD to your desktop or mobile browser as a PWA.
 - **Append & Pipe Support:** Append logs, pipe outputs, or overwrite files directly from your terminal workflows.
 - **Retro Aesthetic:** Modern Web UI with a sleek dark-mode console theme, glowing typography, and micro-animations.
 
@@ -22,7 +27,7 @@ Just access any path (e.g., `makpad.surge.sh/my_notes`) to start writing instant
 ## 🚀 Live Demo
 
 Access the web application here:  
-👉 **[https://makpad.surge.sh](https://makpad.surge.sh)**
+👉 **[https://makpad.mapazero.com](https://makpad.mapazero.com)**
 
 ---
 
@@ -32,12 +37,12 @@ Install the **MAKPAD** command line tool with a single command:
 
 ### 🐧 Linux & macOS
 ```bash
-curl -sL https://makpad.surge.sh/install.sh | bash
+curl -sL https://makpad.mapazero.com/install.sh | bash
 ```
 
 ### 🪟 Windows (PowerShell)
 ```powershell
-iwr -useb https://makpad.surge.sh/install.ps1 | iex
+iwr -useb https://makpad.mapazero.com/install.ps1 | iex
 ```
 
 ---
