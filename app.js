@@ -5,6 +5,7 @@ const loader = document.getElementById('loader');
 const fileInput = document.getElementById('file-input');
 const filesList = document.getElementById('files-list');
 const attachmentsHelp = document.getElementById('attachments-help');
+const attachmentsPanel = document.getElementById('attachments-panel');
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
@@ -87,6 +88,7 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
     const filesApiUrl = '/api/files/' + encodeURIComponent(slug);
     const noteApiUrl = '/api/note/' + encodeURIComponent(slug);
     let publicConfig = {
+        attachmentsEnabled: false,
         fileTtlMs: 60 * 60 * 1000,
         maxFileSize: 100 * 1024 * 1024,
         maxFilesPerSlug: 20,
@@ -138,14 +140,24 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
             const response = await fetch('/api/public/config');
             if (!response.ok) throw new Error('Failed to load public config');
             publicConfig = await response.json();
+            if (!publicConfig.attachmentsEnabled) {
+                attachmentsPanel?.classList.add('hidden');
+                return false;
+            }
+
+            attachmentsPanel?.classList.remove('hidden');
             const ttlMinutes = Math.max(1, Math.round(publicConfig.fileTtlMs / 60000));
             attachmentsHelp.textContent = `Arquivos desta conversa expiram em ${ttlMinutes} min. Limite: ${publicConfig.maxFilesPerSlug} arquivos, ${formatBytes(publicConfig.maxFileSize)} cada.`;
+            return true;
         } catch (e) {
-            attachmentsHelp.textContent = 'Arquivos desta conversa expiram automaticamente.';
+            attachmentsPanel?.classList.add('hidden');
+            return false;
         }
     }
 
     async function fetchFiles() {
+        if (!publicConfig.attachmentsEnabled) return;
+
         try {
             const response = await fetch(filesApiUrl);
             if (!response.ok) throw new Error('Failed to load files');
@@ -157,6 +169,8 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
     }
 
     async function uploadFile(file) {
+        if (!publicConfig.attachmentsEnabled) return;
+
         if (file.size > publicConfig.maxFileSize) {
             statusEl.innerHTML = 'File too large';
             statusEl.className = 'status error';
@@ -256,11 +270,14 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
         loader.classList.add('hidden');
         editor.placeholder = "Comece a digitar aqui...";
         editor.focus();
-        fetchPublicConfig();
-        fetchFiles();
+        fetchPublicConfig().then((attachmentsEnabled) => {
+            if (attachmentsEnabled) fetchFiles();
+        });
         
         // Start polling every 2 seconds
         setInterval(fetchContent, 2000);
-        setInterval(fetchFiles, 30000);
+        setInterval(() => {
+            if (publicConfig.attachmentsEnabled) fetchFiles();
+        }, 30000);
     });
 }

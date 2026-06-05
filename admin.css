@@ -45,6 +45,12 @@ button:hover {
     border-color: var(--accent-2);
 }
 
+button:disabled,
+input:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
 input {
     background: #0c1015;
     border: 1px solid var(--border);

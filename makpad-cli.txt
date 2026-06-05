@@ -28,13 +28,22 @@ VALUE="$3"
 NOTE_URL="${API_BASE}/note/${CHAT}"
 FILES_URL="${API_BASE}/files/${CHAT}"
 
+ensure_attachments_enabled() {
+    if ! curl -fsS "${API_BASE}/public/config" | grep -q '"attachmentsEnabled":true'; then
+        echo "Attachments are disabled for this MAKPAD installation."
+        exit 1
+    fi
+}
+
 if [ "$ACTION" = "--files" ] || [ "$ACTION" = "-f" ]; then
+    ensure_attachments_enabled
     curl -fsS "${FILES_URL}"
     echo
     exit $?
 fi
 
 if [ "$ACTION" = "--upload" ] || [ "$ACTION" = "-u" ]; then
+    ensure_attachments_enabled
     if [ -z "$VALUE" ]; then
         echo "Informe o caminho do arquivo."
         exit 1
@@ -46,6 +55,7 @@ if [ "$ACTION" = "--upload" ] || [ "$ACTION" = "-u" ]; then
 fi
 
 if [ "$ACTION" = "--download" ] || [ "$ACTION" = "-d" ]; then
+    ensure_attachments_enabled
     FILE_ID="$VALUE"
     OUTPUT="$4"
 

@@ -16,13 +16,23 @@ $apiBase = "https://makpad.mapazero.com/api"
 $noteUrl = "$apiBase/note/$BlockName"
 $filesUrl = "$apiBase/files/$BlockName"
 
+function Assert-AttachmentsEnabled {
+    $config = Invoke-RestMethod -Uri "$apiBase/public/config" -Method GET
+    if (-not $config.attachmentsEnabled) {
+        Write-Error "Attachments are disabled for this MAKPAD installation."
+        exit 1
+    }
+}
+
 if ($Files) {
+    Assert-AttachmentsEnabled
     $result = Invoke-WebRequest -Uri $filesUrl -Method GET -UseBasicParsing
     Write-Host $result.Content
     exit
 }
 
 if ($Upload) {
+    Assert-AttachmentsEnabled
     if (-not (Test-Path $Upload)) {
         Write-Error "Arquivo nao encontrado: $Upload"
         exit 1
@@ -35,6 +45,7 @@ if ($Upload) {
 }
 
 if ($Download) {
+    Assert-AttachmentsEnabled
     $downloadUrl = "$apiBase/download/$Download`?slug=$BlockName"
     $target = $OutFile
     if (-not $target) { $target = $Download }

@@ -115,7 +115,13 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.text({ type: 'text/plain', limit: '2mb' }));
 
 const s3Endpoint = process.env.S3_ENDPOINT ? new URL(process.env.S3_ENDPOINT) : null;
-const s3 = S3_BUCKET && s3Endpoint ? new MinioClient({
+const hasS3Config = Boolean(
+  S3_BUCKET
+  && s3Endpoint
+  && process.env.S3_ACCESS_KEY_ID
+  && process.env.S3_SECRET_ACCESS_KEY
+);
+const s3 = hasS3Config ? new MinioClient({
   endPoint: s3Endpoint.hostname,
   port: Number(s3Endpoint.port || (s3Endpoint.protocol === 'https:' ? 443 : 80)),
   useSSL: s3Endpoint.protocol === 'https:',
@@ -124,6 +130,7 @@ const s3 = S3_BUCKET && s3Endpoint ? new MinioClient({
   secretKey: process.env.S3_SECRET_ACCESS_KEY,
   pathStyle: true,
 }) : null;
+const attachmentsEnabled = Boolean(s3);
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -209,6 +216,10 @@ function fileResponse(file) {
     createdAt: file.createdAt,
     expiresAt: file.createdAt + getConfig().fileTtlMs,
   };
+}
+
+function attachmentsUnavailable(res) {
+  return res.status(503).json({ error: 'Attachments are disabled for this MAKPAD installation.' });
 }
 
 function saveNoteContent(slug, content) {
@@ -327,6 +338,7 @@ async function adminOverview() {
   rows.sort((a, b) => b.bucketAttachmentBytes - a.bucketAttachmentBytes || b.attachmentCount - a.attachmentCount);
 
   return {
+    attachmentsEnabled,
     config: getConfig(),
     totals: {
       notes: rows.length,
@@ -342,12 +354,14 @@ async function adminOverview() {
 }
 
 app.get('/api/download/:id', asyncHandler(async (req, res) => {
+  if (!attachmentsEnabled) return attachmentsUnavailable(res);
+
   const slug = normalizeSlug(req.query.slug);
   if (!slug) return res.status(404).json({ error: 'Arquivo não encontrado.' });
 
   await cleanupSlug(slug);
   const file = statements.getAttachment.get(slug, req.params.id);
-  if (!file || !s3) return res.status(404).json({ error: 'Arquivo não encontrado.' });
+  if (!file) return res.status(404).json({ error: 'Arquivo não encontrado.' });
 
   const object = await s3.getObject(S3_BUCKET, file.objectKey);
   res.attachment(file.originalName);
@@ -358,6 +372,7 @@ app.get('/api/download/:id', asyncHandler(async (req, res) => {
 app.get('/api/public/config', (req, res) => {
   const config = getConfig();
   res.json({
+    attachmentsEnabled,
     fileTtlMs: config.fileTtlMs,
     maxFileSize: config.maxFileSize,
     maxFilesPerSlug: config.maxFilesPerSlug,
@@ -383,17 +398,20 @@ app.put('/api/note/:slug(*)', (req, res) => {
 });
 
 app.get('/api/files/:slug(*)', asyncHandler(async (req, res) => {
+  if (!attachmentsEnabled) return res.json({ files: [], attachmentsEnabled: false });
+
   const slug = normalizeSlug(req.params.slug);
-  if (!slug) return res.json({ files: [] });
+  if (!slug) return res.json({ files: [], attachmentsEnabled: true });
 
   const files = (await cleanupSlug(slug)).map(fileResponse);
-  res.json({ files });
+  res.json({ files, attachmentsEnabled: true });
 }));
 
 app.post('/api/files/:slug(*)', upload.single('file'), asyncHandler(async (req, res) => {
+  if (!attachmentsEnabled) return attachmentsUnavailable(res);
+
   const slug = normalizeSlug(req.params.slug);
   if (!slug || !req.file) return res.status(400).json({ error: 'Arquivo inválido.' });
-  if (!s3) return res.status(500).json({ error: 'S3 não configurado.' });
 
   const config = getConfig();
   const files = await cleanupSlug(slug);

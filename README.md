@@ -15,7 +15,7 @@ https://makpad.mapazero.com/my-note
 The app is local-first in CasaOS:
 
 - Notes are stored in SQLite.
-- Attachments are stored in the local Garage S3 bucket.
+- Attachments are optional and, when enabled, are stored in the local Garage S3 bucket.
 - MakpadAdmin reads the same local SQLite/S3 state.
 
 No external KVDB service is required.
@@ -38,8 +38,29 @@ MAKPAD stores:
 
 - Text notes in `/DATA/AppData/makpad/makpad.db`.
 - Admin config in `/DATA/AppData/makpad/makpad.db`.
-- Attachment metadata in `/DATA/AppData/makpad/makpad.db`.
-- Attachment binary objects in the Garage/S3 bucket `makpad-attachments`.
+- Attachment metadata in `/DATA/AppData/makpad/makpad.db`, when attachments are enabled.
+- Attachment binary objects in the Garage/S3 bucket `makpad-attachments`, when attachments are enabled.
+
+## Minimal Install
+
+MAKPAD can run without Garage/S3.
+
+For a minimal SQLite-only install, omit these environment variables:
+
+```text
+S3_ENDPOINT
+S3_BUCKET
+S3_ACCESS_KEY_ID
+S3_SECRET_ACCESS_KEY
+```
+
+In this mode:
+
+- the web UI hides the attachments panel;
+- text notes continue working normally;
+- MakpadAdmin shows attachment storage as disabled;
+- CLI file commands return a clear disabled message;
+- only `/DATA/AppData/makpad/makpad.db` is required for persistence.
 
 ## MakpadAdmin
 
@@ -147,10 +168,15 @@ makpad my-note -Download <file_id> -OutFile .\report.zip
 
 ## Docker/CasaOS Environment
 
-Required:
+Required for the app:
 
 ```text
 MAKPAD_ADMIN_PASSWORD
+```
+
+Required only when enabling attachments:
+
+```text
 S3_ACCESS_KEY_ID
 S3_SECRET_ACCESS_KEY
 ```
