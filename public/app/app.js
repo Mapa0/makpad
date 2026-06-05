@@ -10,8 +10,7 @@ const shareButton = document.getElementById('share-button');
 const shareMenu = document.getElementById('share-menu');
 const shareWhatsapp = document.getElementById('share-whatsapp');
 const shareTelegram = document.getElementById('share-telegram');
-const shareTeams = document.getElementById('share-teams');
-const shareDiscord = document.getElementById('share-discord');
+const shareEmail = document.getElementById('share-email');
 const shareCopy = document.getElementById('share-copy');
 
 if ('serviceWorker' in navigator) {
@@ -225,7 +224,7 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
 
         if (shareWhatsapp) shareWhatsapp.href = `https://wa.me/?text=${encodedText}`;
         if (shareTelegram) shareTelegram.href = `https://t.me/share/url?url=${encodedUrl}&text=${encodeURIComponent(`MAKPAD - /${slug}`)}`;
-        if (shareTeams) shareTeams.href = `https://teams.microsoft.com/share?href=${encodedUrl}`;
+        if (shareEmail) shareEmail.href = `mailto:?subject=${encodeURIComponent(`MAKPAD - /${slug}`)}&body=${encodedText}`;
     }
 
     function setShareMenuOpen(isOpen) {
@@ -266,10 +265,6 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
 
     shareCopy?.addEventListener('click', function () {
         copyShareText(shareUrl, 'Link copied');
-    });
-
-    shareDiscord?.addEventListener('click', function () {
-        copyShareText(shareText, 'Copied for Discord');
     });
 
     document.addEventListener('click', function (event) {

@@ -559,6 +559,10 @@ app.get('/install.ps1', (req, res) => res.sendFile(path.join(SCRIPTS_DIR, 'insta
 app.get('/makpad-cli.txt', (req, res) => res.sendFile(path.join(SCRIPTS_DIR, 'cli', 'makpad-cli.sh')));
 app.get('/makpad-ps1.txt', (req, res) => res.sendFile(path.join(SCRIPTS_DIR, 'cli', 'makpad.ps1')));
 
+app.get(['/assets/*', '/icons/*'], (req, res) => {
+  res.status(404).send('Not found');
+});
+
 app.get('*', (req, res) => {
   const slug = normalizeSlug(req.path);
   sendAppPage(req, res, slug);

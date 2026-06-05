@@ -213,14 +213,9 @@ body::before {
     -webkit-mask-image: url('/assets/icons/share/telegram.svg');
 }
 
-.teams .share-icon::before {
-    mask-image: url('/assets/icons/share/teams.svg');
-    -webkit-mask-image: url('/assets/icons/share/teams.svg');
-}
-
-.discord .share-icon::before {
-    mask-image: url('/assets/icons/share/discord.svg');
-    -webkit-mask-image: url('/assets/icons/share/discord.svg');
+.email .share-icon::before {
+    mask-image: url('/assets/icons/share/email.svg');
+    -webkit-mask-image: url('/assets/icons/share/email.svg');
 }
 
 .copy .share-icon::before {
@@ -230,8 +225,7 @@ body::before {
 
 .whatsapp .share-icon { background: #25d366; }
 .telegram .share-icon { background: #2aabee; }
-.teams .share-icon { background: #6264a7; }
-.discord .share-icon { background: #5865f2; }
+.email .share-icon { background: #f59e0b; }
 .copy .share-icon { background: #38bdf8; color: #0f172a; }
 
 .status::before {
