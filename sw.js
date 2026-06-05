@@ -1,9 +1,6 @@
-const CACHE_NAME = 'makpad-pwa-v2';
+const CACHE_NAME = 'makpad-pwa-v3';
 const CORE_ASSETS = [
   '/',
-  '/200.html',
-  '/app.js',
-  '/style.css',
   '/site.webmanifest',
   '/favicon.ico',
   '/apple-touch-icon.png',
@@ -41,6 +38,21 @@ self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() => caches.match('/200.html'))
+    );
+    return;
+  }
+
+  if (['/200.html', '/app.js', '/style.css', '/admin.js', '/admin.css'].includes(url.pathname)) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok && url.origin === self.location.origin) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
     );
     return;
   }

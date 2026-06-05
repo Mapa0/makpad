@@ -33,6 +33,7 @@ document.getElementById('path-input')?.addEventListener('keypress', function (e)
 });
 
 let isTyping = false;
+let isSaving = false;
 let typingTimeout = null;
 let lastSavedContent = '';
 
@@ -209,7 +210,7 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
     });
 
     async function fetchContent() {
-        if (isTyping) return; // Don't fetch while user is typing
+        if (isTyping || isSaving) return; // Don't fetch while user is typing or saving.
         try {
             const response = await fetch(noteApiUrl);
             if (response.ok) {
@@ -230,18 +231,22 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
     async function saveContent(text) {
         statusEl.innerHTML = 'Saving...';
         statusEl.className = 'status saving';
+        isSaving = true;
         try {
-            await fetch(noteApiUrl, {
+            const response = await fetch(noteApiUrl, {
                 method: 'PUT',
                 body: text,
                 headers: { 'Content-Type': 'text/plain' }
             });
+            if (!response.ok) throw new Error('Save failed');
             lastSavedContent = text;
             statusEl.innerHTML = 'Online';
             statusEl.className = 'status';
         } catch (e) {
             statusEl.innerHTML = 'Error';
             statusEl.className = 'status error';
+        } finally {
+            isSaving = false;
         }
     }
 
@@ -255,7 +260,9 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
         typingTimeout = setTimeout(() => {
             isTyping = false;
             if (editor.value !== lastSavedContent) {
-                saveContent(editor.value);
+                saveContent(editor.value).then(() => {
+                    if (editor.value !== lastSavedContent) debounceSave();
+                });
             } else {
                 statusEl.innerHTML = 'Online';
                 statusEl.className = 'status';
