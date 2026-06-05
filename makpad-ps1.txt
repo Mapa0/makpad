@@ -8,7 +8,7 @@ param(
     [switch]$Append
 )
 
-$url = "https://kvdb.io/PN9BCNTq5bPDAQwk9gugKQ/$BlockName"
+$url = "https://makpad.mapazero.com/api/note/$BlockName"
 
 if ([Console]::IsInputRedirected) {
     # Piped input via standard input
@@ -23,10 +23,10 @@ if ([Console]::IsInputRedirected) {
             $PipedText = $Current + "`n" + $PipedText 
         }
     }
-    Invoke-WebRequest -Uri $url -Method POST -BodyMode "Raw" -Body $PipedText -ContentType "text/plain" -UseBasicParsing | Out-Null
+    Invoke-WebRequest -Uri $url -Method PUT -BodyMode "Raw" -Body $PipedText -ContentType "text/plain" -UseBasicParsing | Out-Null
 } else {
     if ($Text) {
-        Invoke-WebRequest -Uri $url -Method POST -Body $Text -ContentType "text/plain" -UseBasicParsing | Out-Null
+        Invoke-WebRequest -Uri $url -Method PUT -Body $Text -ContentType "text/plain" -UseBasicParsing | Out-Null
     } else {
         try {
             $Output = (Invoke-WebRequest -Uri $url -Method GET -UseBasicParsing -ErrorAction Ignore).Content

@@ -19,6 +19,7 @@ Just access any path (e.g., `makpad.mapazero.com/my_notes`) to start writing ins
 - **Zero Configuration:** No accounts, no passwords, no setup. Just pick a URL/slug and go.
 - **Cross-Platform CLI:** Native-like experience for Linux, macOS, and Windows.
 - **Installable Web App:** Add MAKPAD to your desktop or mobile browser as a PWA.
+- **MakpadAdmin:** Protected admin panel for attachment storage, note stats, cleanup, and upload limits.
 - **Append & Pipe Support:** Append logs, pipe outputs, or overwrite files directly from your terminal workflows.
 - **Retro Aesthetic:** Modern Web UI with a sleek dark-mode console theme, glowing typography, and micro-animations.
 
@@ -82,7 +83,23 @@ echo "Another line" | makpad my_notes -a
 
 - **Frontend:** Vanilla HTML5, CSS3 (Custom Variables, Keyframe Animations), and modern JavaScript.
 - **Backend/Storage:** Key-Value Database (KVDB) API for high performance and low-latency synchronization.
+- **Attachments:** S3-compatible storage with automatic expiration and admin cleanup tooling.
 - **Fonts:** JetBrains Mono & Inter via Google Fonts.
+
+---
+
+## 🔐 MakpadAdmin
+
+Open `/admin` to inspect tracked notes, character counts, attachment counts, S3 storage usage, and chats with the largest attachments.
+
+The admin panel can also:
+
+- Clean expired attachments.
+- Remove all attachments from a selected chat.
+- Delete a selected note and its attachments.
+- Configure max file size, max files per chat, upload cooldown, and attachment lifetime.
+
+Set `MAKPAD_ADMIN_PASSWORD` in the deployment environment to enable admin access.
 
 ---
 

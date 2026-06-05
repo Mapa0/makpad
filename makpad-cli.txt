@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration
-BUCKET_URL="https://kvdb.io/PN9BCNTq5bPDAQwk9gugKQ"
+API_URL="https://makpad.mapazero.com/api/note"
 
 if [ -z "$1" ]; then
     echo "Uso: makpad <nome_do_bloco> [-a|--append]"
@@ -21,24 +21,24 @@ if [ ! -t 0 ]; then
     
     if [ "$2" == "-a" ] || [ "$2" == "--append" ]; then
         # Fetch current content, append, and save
-        CURRENT_TEXT=$(curl -s -X GET "${BUCKET_URL}/${BLOCK_NAME}")
+        CURRENT_TEXT=$(curl -s -X GET "${API_URL}/${BLOCK_NAME}")
         if [ ! -z "$CURRENT_TEXT" ]; then
             NEW_TEXT="${CURRENT_TEXT}"$'\n'"${INPUT_TEXT}"
         else
             NEW_TEXT="${INPUT_TEXT}"
         fi
-        curl -s -X POST --data-binary "${NEW_TEXT}" "${BUCKET_URL}/${BLOCK_NAME}"
+        curl -s -X PUT --data-binary "${NEW_TEXT}" -H "Content-Type: text/plain" "${API_URL}/${BLOCK_NAME}"
     else
         # Overwrite
-        curl -s -X POST --data-binary "${INPUT_TEXT}" "${BUCKET_URL}/${BLOCK_NAME}"
+        curl -s -X PUT --data-binary "${INPUT_TEXT}" -H "Content-Type: text/plain" "${API_URL}/${BLOCK_NAME}"
     fi
 else
     # If there's an explicit second argument (string text)
     if [ ! -z "$2" ] && [ "$2" != "-a" ] && [ "$2" != "--append" ]; then
-        curl -s -X POST --data-binary "$2" "${BUCKET_URL}/${BLOCK_NAME}"
+        curl -s -X PUT --data-binary "$2" -H "Content-Type: text/plain" "${API_URL}/${BLOCK_NAME}"
     else
         # Just read the text and output it
-        OUTPUT=$(curl -s -X GET "${BUCKET_URL}/${BLOCK_NAME}")
+        OUTPUT=$(curl -s -X GET "${API_URL}/${BLOCK_NAME}")
         if [ ! -z "$OUTPUT" ]; then
             echo "$OUTPUT"
         fi

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MakpadAdmin</title>
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="stylesheet" href="/admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="admin-topbar">
+        <a href="/" class="brand">
+            <img src="/icons/makpad-transparent.png" alt="">
+            <span>MakpadAdmin</span>
+        </a>
+        <div class="topbar-actions">
+            <button id="refresh-button" type="button">Atualizar</button>
+            <button id="cleanup-button" type="button">Limpar Expirados</button>
+        </div>
+    </header>
+
+    <main class="admin-shell">
+        <section id="login-panel" class="login-panel">
+            <div>
+                <h1>Admin</h1>
+                <p>Informe a senha administrativa para ver notes, anexos e limites.</p>
+            </div>
+            <form id="login-form">
+                <input id="admin-password" type="password" placeholder="Senha admin" autocomplete="current-password">
+                <button type="submit">Entrar</button>
+            </form>
+        </section>
+
+        <section id="dashboard" class="dashboard hidden">
+            <section class="metrics-grid" aria-label="Resumo">
+                <article>
+                    <span>Notes</span>
+                    <strong id="metric-notes">0</strong>
+                </article>
+                <article>
+                    <span>Caracteres</span>
+                    <strong id="metric-chars">0</strong>
+                </article>
+                <article>
+                    <span>Anexos</span>
+                    <strong id="metric-attachments">0</strong>
+                </article>
+                <article>
+                    <span>Storage S3</span>
+                    <strong id="metric-storage">0 B</strong>
+                </article>
+            </section>
+
+            <section class="admin-layout">
+                <section class="panel">
+                    <div class="panel-heading">
+                        <div>
+                            <h2>Chats por armazenamento</h2>
+                            <p id="orphan-info">Sem objetos órfãos detectados.</p>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Chat</th>
+                                    <th>Chars</th>
+                                    <th>Anexos</th>
+                                    <th>Storage</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="notes-table"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <aside class="panel config-panel">
+                    <h2>Limites</h2>
+                    <form id="config-form">
+                        <label>
+                            Tamanho máximo por arquivo
+                            <div class="input-row">
+                                <input id="max-file-size" type="number" min="1" step="1">
+                                <span>MB</span>
+                            </div>
+                        </label>
+                        <label>
+                            Máximo de arquivos por chat
+                            <input id="max-files" type="number" min="1" max="200" step="1">
+                        </label>
+                        <label>
+                            Intervalo entre uploads
+                            <div class="input-row">
+                                <input id="upload-cooldown" type="number" min="0" step="1">
+                                <span>s</span>
+                            </div>
+                        </label>
+                        <label>
+                            Tempo de vida dos anexos
+                            <div class="input-row">
+                                <input id="file-ttl" type="number" min="1" step="1">
+                                <span>min</span>
+                            </div>
+                        </label>
+                        <button type="submit">Salvar limites</button>
+                    </form>
+                </aside>
+            </section>
+        </section>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+    <script src="/admin.js"></script>
+</body>
+</html>

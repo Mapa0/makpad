@@ -1,10 +1,10 @@
-const BUCKET_URL = 'https://kvdb.io/PN9BCNTq5bPDAQwk9gugKQ/';
 const editor = document.getElementById('editor');
 const statusEl = document.getElementById('status');
 const pathDisplay = document.getElementById('path-display');
 const loader = document.getElementById('loader');
 const fileInput = document.getElementById('file-input');
 const filesList = document.getElementById('files-list');
+const attachmentsHelp = document.getElementById('attachments-help');
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
@@ -85,6 +85,13 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
     });
 
     const filesApiUrl = '/api/files/' + encodeURIComponent(slug);
+    const noteApiUrl = '/api/note/' + encodeURIComponent(slug);
+    let publicConfig = {
+        fileTtlMs: 60 * 60 * 1000,
+        maxFileSize: 100 * 1024 * 1024,
+        maxFilesPerSlug: 20,
+        uploadCooldownMs: 10 * 1000
+    };
 
     function formatBytes(bytes) {
         if (!bytes) return '0 B';
@@ -126,6 +133,18 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
         }).join('');
     }
 
+    async function fetchPublicConfig() {
+        try {
+            const response = await fetch('/api/public/config');
+            if (!response.ok) throw new Error('Failed to load public config');
+            publicConfig = await response.json();
+            const ttlMinutes = Math.max(1, Math.round(publicConfig.fileTtlMs / 60000));
+            attachmentsHelp.textContent = `Arquivos desta conversa expiram em ${ttlMinutes} min. Limite: ${publicConfig.maxFilesPerSlug} arquivos, ${formatBytes(publicConfig.maxFileSize)} cada.`;
+        } catch (e) {
+            attachmentsHelp.textContent = 'Arquivos desta conversa expiram automaticamente.';
+        }
+    }
+
     async function fetchFiles() {
         try {
             const response = await fetch(filesApiUrl);
@@ -138,6 +157,13 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
     }
 
     async function uploadFile(file) {
+        if (file.size > publicConfig.maxFileSize) {
+            statusEl.innerHTML = 'File too large';
+            statusEl.className = 'status error';
+            fileInput.value = '';
+            return;
+        }
+
         const formData = new FormData();
         formData.append('file', file);
         statusEl.innerHTML = 'Uploading...';
@@ -148,12 +174,15 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
                 method: 'POST',
                 body: formData
             });
-            if (!response.ok) throw new Error('Upload failed');
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}));
+                throw new Error(data.error || 'Upload failed');
+            }
             await fetchFiles();
             statusEl.innerHTML = 'Online';
             statusEl.className = 'status';
         } catch (e) {
-            statusEl.innerHTML = 'Error';
+            statusEl.innerHTML = e.message || 'Error';
             statusEl.className = 'status error';
         } finally {
             fileInput.value = '';
@@ -168,7 +197,7 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
     async function fetchContent() {
         if (isTyping) return; // Don't fetch while user is typing
         try {
-            const response = await fetch(BUCKET_URL + slug);
+            const response = await fetch(noteApiUrl);
             if (response.ok) {
                 const text = await response.text();
                 if (editor.value !== text && !isTyping) {
@@ -188,8 +217,8 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
         statusEl.innerHTML = 'Saving...';
         statusEl.className = 'status saving';
         try {
-            await fetch(BUCKET_URL + slug, {
-                method: 'POST',
+            await fetch(noteApiUrl, {
+                method: 'PUT',
                 body: text,
                 headers: { 'Content-Type': 'text/plain' }
             });
@@ -227,6 +256,7 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
         loader.classList.add('hidden');
         editor.placeholder = "Comece a digitar aqui...";
         editor.focus();
+        fetchPublicConfig();
         fetchFiles();
         
         // Start polling every 2 seconds
