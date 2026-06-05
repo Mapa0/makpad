@@ -22,7 +22,36 @@
             <a class="logo-home" href="/" aria-label="Voltar para a página inicial">MAKPAD</a>
             <span id="path-display" class="path" tabindex="0" title="Clique para editar a rota">/</span>
         </div>
-        <div id="status" class="status">Online</div>
+        <div class="topbar-actions">
+            <div id="share-menu" class="share-menu hidden" aria-label="Opções de compartilhamento">
+                <a id="share-whatsapp" class="share-option whatsapp" href="#" target="_blank" rel="noreferrer">
+                    <span class="share-icon">W</span>
+                    <span>WhatsApp</span>
+                </a>
+                <a id="share-telegram" class="share-option telegram" href="#" target="_blank" rel="noreferrer">
+                    <span class="share-icon">T</span>
+                    <span>Telegram</span>
+                </a>
+                <a id="share-teams" class="share-option teams" href="#" target="_blank" rel="noreferrer">
+                    <span class="share-icon">M</span>
+                    <span>Teams</span>
+                </a>
+                <button id="share-discord" class="share-option discord" type="button">
+                    <span class="share-icon">D</span>
+                    <span>Discord</span>
+                </button>
+                <button id="share-copy" class="share-option copy" type="button">
+                    <span class="share-icon">⧉</span>
+                    <span>Copiar</span>
+                </button>
+            </div>
+            <button id="share-button" class="share-button hidden" type="button" aria-label="Compartilhar note" aria-expanded="false" title="Compartilhar">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M18 8a3 3 0 1 0-2.8-4H15a3 3 0 0 0 .2 1L8.9 8.7A3 3 0 0 0 6 8a3 3 0 1 0 2.8 4H9a3 3 0 0 0-.2-1l6.3-3.7A3 3 0 0 0 18 8Zm0 6a3 3 0 0 0-2.9 2.3L8.8 13A3 3 0 0 1 7 14.8l6.4 3.4A3 3 0 1 0 18 14Z"/>
+                </svg>
+            </button>
+            <div id="status" class="status">Online</div>
+        </div>
         <div id="nav-cat" class="cat-track hidden">
             <div class="cat"></div>
         </div>
@@ -92,6 +121,6 @@ $ echo "Linha extra" | makpad <b>exemplo</b> --append
         </div>
     </main>
 
-    <script src="/app.js?v=20260605-sync"></script>
+    <script src="/app.js?v=20260605-share"></script>
 </body>
 </html>

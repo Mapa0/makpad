@@ -6,6 +6,13 @@ const fileInput = document.getElementById('file-input');
 const filesList = document.getElementById('files-list');
 const attachmentsHelp = document.getElementById('attachments-help');
 const attachmentsPanel = document.getElementById('attachments-panel');
+const shareButton = document.getElementById('share-button');
+const shareMenu = document.getElementById('share-menu');
+const shareWhatsapp = document.getElementById('share-whatsapp');
+const shareTelegram = document.getElementById('share-telegram');
+const shareTeams = document.getElementById('share-teams');
+const shareDiscord = document.getElementById('share-discord');
+const shareCopy = document.getElementById('share-copy');
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
@@ -58,6 +65,7 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
     document.getElementById('nav-cat').classList.add('hidden');
     pathDisplay.textContent = '/' + slug;
     pathDisplay.contentEditable = 'true';
+    shareButton?.classList.remove('hidden');
 
     function selectPathText() {
         const selection = window.getSelection();
@@ -88,6 +96,8 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
 
     const filesApiUrl = '/api/files/' + encodeURIComponent(slug);
     const noteApiUrl = '/api/note/' + encodeURIComponent(slug);
+    const shareUrl = window.location.origin + '/' + slug;
+    const shareText = `MAKPAD - /${slug}\n${shareUrl}`;
     let publicConfig = {
         attachmentsEnabled: false,
         fileTtlMs: 60 * 60 * 1000,
@@ -207,6 +217,69 @@ if (!slug || slug === 'index.html' || slug === '200.html') {
     fileInput?.addEventListener('change', function () {
         const [file] = fileInput.files || [];
         if (file) uploadFile(file);
+    });
+
+    function setShareLinks() {
+        const encodedUrl = encodeURIComponent(shareUrl);
+        const encodedText = encodeURIComponent(shareText);
+
+        if (shareWhatsapp) shareWhatsapp.href = `https://wa.me/?text=${encodedText}`;
+        if (shareTelegram) shareTelegram.href = `https://t.me/share/url?url=${encodedUrl}&text=${encodeURIComponent(`MAKPAD - /${slug}`)}`;
+        if (shareTeams) shareTeams.href = `https://teams.microsoft.com/share?href=${encodedUrl}`;
+    }
+
+    function setShareMenuOpen(isOpen) {
+        shareMenu?.classList.toggle('hidden', !isOpen);
+        shareButton?.classList.toggle('active', isOpen);
+        shareButton?.setAttribute('aria-expanded', String(isOpen));
+    }
+
+    async function copyShareText(value, message) {
+        try {
+            await navigator.clipboard.writeText(value);
+        } catch {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = value;
+            tempInput.style.position = 'fixed';
+            tempInput.style.opacity = '0';
+            document.body.appendChild(tempInput);
+            tempInput.focus();
+            tempInput.select();
+            document.execCommand('copy');
+            tempInput.remove();
+        }
+
+        statusEl.innerHTML = message;
+        statusEl.className = 'status';
+        setShareMenuOpen(false);
+        window.setTimeout(() => {
+            statusEl.innerHTML = 'Online';
+        }, 1600);
+    }
+
+    setShareLinks();
+
+    shareButton?.addEventListener('click', function (event) {
+        event.stopPropagation();
+        setShareMenuOpen(shareMenu.classList.contains('hidden'));
+    });
+
+    shareCopy?.addEventListener('click', function () {
+        copyShareText(shareUrl, 'Link copied');
+    });
+
+    shareDiscord?.addEventListener('click', function () {
+        copyShareText(shareText, 'Copied for Discord');
+    });
+
+    document.addEventListener('click', function (event) {
+        if (!shareMenu?.contains(event.target) && !shareButton?.contains(event.target)) {
+            setShareMenuOpen(false);
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') setShareMenuOpen(false);
     });
 
     async function fetchContent() {
