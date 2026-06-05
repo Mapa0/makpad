@@ -1,46 +1,98 @@
 #!/bin/bash
 
-# Configuration
-API_URL="https://makpad.mapazero.com/api/note"
+API_BASE="https://makpad.mapazero.com/api"
+
+usage() {
+    echo "Uso: makpad <chat> [texto|-a|--append|--files|--upload arquivo|--download id [destino]]"
+    echo
+    echo "Texto:"
+    echo "  makpad exemplo"
+    echo "  makpad exemplo \"Seu texto aqui\""
+    echo "  echo 'linha' | makpad exemplo"
+    echo "  echo 'linha' | makpad exemplo --append"
+    echo
+    echo "Arquivos:"
+    echo "  makpad exemplo --files"
+    echo "  makpad exemplo --upload ./arquivo.zip"
+    echo "  makpad exemplo --download <file_id> ./arquivo.zip"
+    exit 1
+}
 
 if [ -z "$1" ]; then
-    echo "Uso: makpad <nome_do_bloco> [-a|--append]"
-    echo "Uso rápido:"
-    echo "  • Lendo:    makpad exemplo"
-    echo "  • Gravando: echo 'ola mundo' | makpad exemplo"
-    echo "  • Anexando: echo 'ola mundo' | makpad exemplo --append"
-    echo "  • P/ string: makpad exemplo \"Seu texto aqui\""
-    exit 1
+    usage
 fi
 
-BLOCK_NAME="$1"
+CHAT="$1"
+ACTION="$2"
+VALUE="$3"
+NOTE_URL="${API_BASE}/note/${CHAT}"
+FILES_URL="${API_BASE}/files/${CHAT}"
 
-# Check if stdin is NOT a terminal (has piped / redirected data)
+if [ "$ACTION" = "--files" ] || [ "$ACTION" = "-f" ]; then
+    curl -fsS "${FILES_URL}"
+    echo
+    exit $?
+fi
+
+if [ "$ACTION" = "--upload" ] || [ "$ACTION" = "-u" ]; then
+    if [ -z "$VALUE" ]; then
+        echo "Informe o caminho do arquivo."
+        exit 1
+    fi
+
+    curl -fsS -X POST -F "file=@${VALUE}" "${FILES_URL}"
+    echo
+    exit $?
+fi
+
+if [ "$ACTION" = "--download" ] || [ "$ACTION" = "-d" ]; then
+    FILE_ID="$VALUE"
+    OUTPUT="$4"
+
+    if [ -z "$FILE_ID" ]; then
+        echo "Informe o id do arquivo."
+        exit 1
+    fi
+
+    DOWNLOAD_URL="${API_BASE}/download/${FILE_ID}?slug=${CHAT}"
+    if [ -n "$OUTPUT" ]; then
+        curl -fL "${DOWNLOAD_URL}" -o "$OUTPUT"
+    else
+        curl -fLOJ "${DOWNLOAD_URL}"
+    fi
+    exit $?
+fi
+
+if [ -n "$ACTION" ] && [ "$ACTION" != "-a" ] && [ "$ACTION" != "--append" ]; then
+    curl -fsS -X PUT --data-binary "$ACTION" -H "Content-Type: text/plain" "${NOTE_URL}" >/dev/null
+    exit $?
+fi
+
 if [ ! -t 0 ]; then
     INPUT_TEXT=$(cat)
-    
-    if [ "$2" == "-a" ] || [ "$2" == "--append" ]; then
-        # Fetch current content, append, and save
-        CURRENT_TEXT=$(curl -s -X GET "${API_URL}/${BLOCK_NAME}")
-        if [ ! -z "$CURRENT_TEXT" ]; then
+
+    if [ -z "$INPUT_TEXT" ] && [ -z "$ACTION" ]; then
+        OUTPUT=$(curl -fsS -X GET "${NOTE_URL}" || true)
+        if [ -n "$OUTPUT" ]; then
+            echo "$OUTPUT"
+        fi
+        exit $?
+    fi
+
+    if [ "$ACTION" = "-a" ] || [ "$ACTION" = "--append" ]; then
+        CURRENT_TEXT=$(curl -fsS -X GET "${NOTE_URL}" || true)
+        if [ -n "$CURRENT_TEXT" ]; then
             NEW_TEXT="${CURRENT_TEXT}"$'\n'"${INPUT_TEXT}"
         else
             NEW_TEXT="${INPUT_TEXT}"
         fi
-        curl -s -X PUT --data-binary "${NEW_TEXT}" -H "Content-Type: text/plain" "${API_URL}/${BLOCK_NAME}"
+        curl -fsS -X PUT --data-binary "${NEW_TEXT}" -H "Content-Type: text/plain" "${NOTE_URL}" >/dev/null
     else
-        # Overwrite
-        curl -s -X PUT --data-binary "${INPUT_TEXT}" -H "Content-Type: text/plain" "${API_URL}/${BLOCK_NAME}"
+        curl -fsS -X PUT --data-binary "${INPUT_TEXT}" -H "Content-Type: text/plain" "${NOTE_URL}" >/dev/null
     fi
 else
-    # If there's an explicit second argument (string text)
-    if [ ! -z "$2" ] && [ "$2" != "-a" ] && [ "$2" != "--append" ]; then
-        curl -s -X PUT --data-binary "$2" -H "Content-Type: text/plain" "${API_URL}/${BLOCK_NAME}"
-    else
-        # Just read the text and output it
-        OUTPUT=$(curl -s -X GET "${API_URL}/${BLOCK_NAME}")
-        if [ ! -z "$OUTPUT" ]; then
-            echo "$OUTPUT"
-        fi
+    OUTPUT=$(curl -fsS -X GET "${NOTE_URL}" || true)
+    if [ -n "$OUTPUT" ]; then
+        echo "$OUTPUT"
     fi
 fi

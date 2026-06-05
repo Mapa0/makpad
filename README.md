@@ -2,107 +2,198 @@
   <img src="https://makpad.mapazero.com/icons/makpad.png" alt="MAKPAD" width="160">
 </p>
 
-# 📝 MAKPAD — Realtime Cloud Notepad & CLI
+# MAKPAD
 
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?style=for-the-badge&logo=vercel)](https://makpad.mapazero.com)
-[![Platform](https://img.shields.io/badge/platform-Web%20%7C%20Linux%20%7C%20macOS%20%7C%20Windows-blue?style=for-the-badge)](#)
+MAKPAD is a self-hosted realtime notepad and temporary file-sharing app.
 
-> **MAKPAD** is a minimalist, ultra-fast, and realtime cloud notepad service. Inspired by Dontpad, it allows you to instantly sync text between your browser and your terminal without any login, configuration, or hassle. 
+Open any path to create a chat/note:
 
-Just access any path (e.g., `makpad.mapazero.com/my_notes`) to start writing instantly!
+```text
+https://makpad.mapazero.com/my-note
+```
 
----
+The app is local-first in CasaOS:
 
-## ✨ Features
+- Notes are stored in SQLite.
+- Attachments are stored in the local Garage S3 bucket.
+- MakpadAdmin reads the same local SQLite/S3 state.
 
-- **Instant Synchronization:** Write on the web, see in the terminal. Pipe from the terminal, see on the web.
-- **Zero Configuration:** No accounts, no passwords, no setup. Just pick a URL/slug and go.
-- **Cross-Platform CLI:** Native-like experience for Linux, macOS, and Windows.
-- **Installable Web App:** Add MAKPAD to your desktop or mobile browser as a PWA.
-- **MakpadAdmin:** Protected admin panel for attachment storage, note stats, cleanup, and upload limits.
-- **Append & Pipe Support:** Append logs, pipe outputs, or overwrite files directly from your terminal workflows.
-- **Retro Aesthetic:** Modern Web UI with a sleek dark-mode console theme, glowing typography, and micro-animations.
+No external KVDB service is required.
 
----
+## Storage Layout
 
-## 🚀 Live Demo
+Inside the CasaOS host:
 
-Access the web application here:  
-👉 **[https://makpad.mapazero.com](https://makpad.mapazero.com)**
+```text
+/DATA/AppData/makpad/
+  makpad.db
+  makpad.db-wal
+  makpad.db-shm
 
----
+/DATA/AppData/garage/
+  Garage object storage data
+```
 
-## 📦 CLI Installation
+MAKPAD stores:
 
-Install the **MAKPAD** command line tool with a single command:
+- Text notes in `/DATA/AppData/makpad/makpad.db`.
+- Admin config in `/DATA/AppData/makpad/makpad.db`.
+- Attachment metadata in `/DATA/AppData/makpad/makpad.db`.
+- Attachment binary objects in the Garage/S3 bucket `makpad-attachments`.
 
-### 🐧 Linux & macOS
+## MakpadAdmin
+
+Open:
+
+```text
+https://makpad.mapazero.com/admin
+```
+
+MakpadAdmin can:
+
+- list tracked notes/chats;
+- show character counts;
+- show attachment counts;
+- show total S3 storage usage;
+- sort chats by attachment storage;
+- clean expired attachments;
+- clean all attachments from a selected chat;
+- delete a selected note and its attachments;
+- configure upload limits.
+
+Admin access is controlled by the container environment variable:
+
+```text
+MAKPAD_ADMIN_PASSWORD
+```
+
+## Abuse Guardrails
+
+MakpadAdmin can configure:
+
+- max file size;
+- max files per chat;
+- cooldown between uploads;
+- attachment lifetime.
+
+These limits reduce storage abuse and simple upload spam. For stronger DDoS protection, use edge/proxy protections too, such as rate limits in Caddy/Nginx/Cloudflare and host firewall rules.
+
+## CLI Installation
+
+Linux/macOS:
+
 ```bash
 curl -sL https://makpad.mapazero.com/install.sh | bash
 ```
 
-### 🪟 Windows (PowerShell)
+Windows PowerShell:
+
 ```powershell
 iwr -useb https://makpad.mapazero.com/install.ps1 | iex
 ```
 
----
+## CLI Usage
 
-## 💻 CLI Usage Examples
+Read a note:
 
-Once installed, use `makpad <note_name>` in your terminal:
-
-### 📖 Read a Note
-Fetch and print the content of any cloud note:
 ```bash
-makpad my_notes
+makpad my-note
 ```
 
-### ✍️ Write/Overwrite a Note
-Send a string directly:
+Overwrite a note:
+
 ```bash
-makpad my_notes "Pausa pro café!"
+makpad my-note "hello from terminal"
 ```
 
-Or pipe command outputs:
+Overwrite from stdin:
+
 ```bash
-echo "Hello MAKPAD from the CLI!" | makpad my_notes
+echo "hello from stdin" | makpad my-note
 ```
 
-### ➕ Append to a Note
-Append new content to the end of the note without overwriting:
+Append from stdin:
+
 ```bash
-echo "This is an extra log line" | makpad my_notes --append
-# or shortcut
-echo "Another line" | makpad my_notes -a
+echo "another line" | makpad my-note --append
 ```
 
----
+List attachments for a chat:
 
-## 🛠️ Tech Stack
+```bash
+makpad my-note --files
+```
 
-- **Frontend:** Vanilla HTML5, CSS3 (Custom Variables, Keyframe Animations), and modern JavaScript.
-- **Backend/Storage:** Key-Value Database (KVDB) API for high performance and low-latency synchronization.
-- **Attachments:** S3-compatible storage with automatic expiration and admin cleanup tooling.
-- **Fonts:** JetBrains Mono & Inter via Google Fonts.
+Upload a file to a chat:
 
----
+```bash
+makpad my-note --upload ./report.zip
+```
 
-## 🔐 MakpadAdmin
+Download a file by id:
 
-Open `/admin` to inspect tracked notes, character counts, attachment counts, S3 storage usage, and chats with the largest attachments.
+```bash
+makpad my-note --download <file_id> ./report.zip
+```
 
-The admin panel can also:
+PowerShell examples:
 
-- Clean expired attachments.
-- Remove all attachments from a selected chat.
-- Delete a selected note and its attachments.
-- Configure max file size, max files per chat, upload cooldown, and attachment lifetime.
+```powershell
+makpad my-note "hello from powershell"
+makpad my-note -Files
+makpad my-note -Upload .\report.zip
+makpad my-note -Download <file_id> -OutFile .\report.zip
+```
 
-Set `MAKPAD_ADMIN_PASSWORD` in the deployment environment to enable admin access.
+## Docker/CasaOS Environment
 
----
+Required:
 
-## 📄 License
+```text
+MAKPAD_ADMIN_PASSWORD
+S3_ACCESS_KEY_ID
+S3_SECRET_ACCESS_KEY
+```
 
-This project is open-source and available under the [MIT License](LICENSE).
+Useful defaults:
+
+```text
+DATA_DIR=/app/data
+FILE_TTL_MS=3600000
+MAX_FILE_SIZE=104857600
+MAX_FILES_PER_SLUG=20
+UPLOAD_COOLDOWN_MS=10000
+S3_ENDPOINT=http://host.docker.internal:3900
+S3_REGION=garage
+S3_BUCKET=makpad-attachments
+```
+
+The container volume should keep `/app/data` mapped to:
+
+```text
+/DATA/AppData/makpad
+```
+
+## Fresh Install
+
+To reset MAKPAD completely:
+
+```bash
+sudo rm -rf /DATA/AppData/makpad
+```
+
+To also clear all Garage/S3 objects for MAKPAD, delete the objects under the `makpad-attachments` bucket or recreate the bucket.
+
+After cleanup, redeploy/restart the MAKPAD container. The app will recreate `makpad.db` automatically.
+
+## Tech Stack
+
+- Node.js and Express
+- SQLite via `better-sqlite3`
+- Garage/S3 for attachment objects
+- MinIO SDK for S3 operations
+- Vanilla HTML/CSS/JavaScript
+
+## License
+
+MIT

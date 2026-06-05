@@ -8,6 +8,7 @@
     "test": "node --test"
   },
   "dependencies": {
+    "better-sqlite3": "^11.10.0",
     "express": "^4.19.2",
     "minio": "^8.0.5",
     "multer": "^2.0.0"

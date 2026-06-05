@@ -1,36 +1,69 @@
 param(
     [Parameter(Position=0, Mandatory=$true)]
     [string]$BlockName,
-    
+
     [Parameter(Position=1)]
     [string]$Text = $null,
-    
-    [switch]$Append
+
+    [switch]$Append,
+    [switch]$Files,
+    [string]$Upload = $null,
+    [string]$Download = $null,
+    [string]$OutFile = $null
 )
 
-$url = "https://makpad.mapazero.com/api/note/$BlockName"
+$apiBase = "https://makpad.mapazero.com/api"
+$noteUrl = "$apiBase/note/$BlockName"
+$filesUrl = "$apiBase/files/$BlockName"
+
+if ($Files) {
+    $result = Invoke-WebRequest -Uri $filesUrl -Method GET -UseBasicParsing
+    Write-Host $result.Content
+    exit
+}
+
+if ($Upload) {
+    if (-not (Test-Path $Upload)) {
+        Write-Error "Arquivo nao encontrado: $Upload"
+        exit 1
+    }
+
+    $form = @{ file = Get-Item $Upload }
+    $result = Invoke-WebRequest -Uri $filesUrl -Method POST -Form $form -UseBasicParsing
+    Write-Host $result.Content
+    exit
+}
+
+if ($Download) {
+    $downloadUrl = "$apiBase/download/$Download`?slug=$BlockName"
+    $target = $OutFile
+    if (-not $target) { $target = $Download }
+    Invoke-WebRequest -Uri $downloadUrl -Method GET -OutFile $target -UseBasicParsing
+    Write-Host "Arquivo salvo em $target"
+    exit
+}
 
 if ([Console]::IsInputRedirected) {
-    # Piped input via standard input
-    $PipedText = [Console]::In.ReadToEnd()
+    $pipedText = [Console]::In.ReadToEnd()
     if ($Append) {
-        $Current = $null
+        $current = ""
         try {
-            $Current = (Invoke-WebRequest -Uri $url -Method GET -UseBasicParsing -ErrorAction Ignore).Content
+            $current = (Invoke-WebRequest -Uri $noteUrl -Method GET -UseBasicParsing -ErrorAction Ignore).Content
         } catch {}
-        
-        if ($Current) { 
-            $PipedText = $Current + "`n" + $PipedText 
+
+        if ($current) {
+            $pipedText = $current + "`n" + $pipedText
         }
     }
-    Invoke-WebRequest -Uri $url -Method PUT -BodyMode "Raw" -Body $PipedText -ContentType "text/plain" -UseBasicParsing | Out-Null
+
+    Invoke-WebRequest -Uri $noteUrl -Method PUT -BodyMode "Raw" -Body $pipedText -ContentType "text/plain" -UseBasicParsing | Out-Null
 } else {
     if ($Text) {
-        Invoke-WebRequest -Uri $url -Method PUT -Body $Text -ContentType "text/plain" -UseBasicParsing | Out-Null
+        Invoke-WebRequest -Uri $noteUrl -Method PUT -Body $Text -ContentType "text/plain" -UseBasicParsing | Out-Null
     } else {
         try {
-            $Output = (Invoke-WebRequest -Uri $url -Method GET -UseBasicParsing -ErrorAction Ignore).Content
-            if ($Output) { Write-Host $Output }
+            $output = (Invoke-WebRequest -Uri $noteUrl -Method GET -UseBasicParsing -ErrorAction Ignore).Content
+            if ($output) { Write-Host $output }
         } catch {}
     }
 }
