@@ -1,4 +1,4 @@
-const CACHE_NAME = 'makpad-pwa-v6';
+const CACHE_NAME = 'makpad-pwa-v7';
 const CORE_ASSETS = [
   '/',
   '/site.webmanifest',
