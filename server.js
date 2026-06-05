@@ -105,18 +105,50 @@ async function cleanupSlug(slug) {
 }
 
 async function cleanupAllUploads() {
-  if (!fs.existsSync(META_DIR)) return;
+  if (fs.existsSync(META_DIR)) {
+    for (const entry of fs.readdirSync(META_DIR, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
 
-  for (const entry of fs.readdirSync(META_DIR, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-
-    try {
-      const metadata = JSON.parse(fs.readFileSync(path.join(META_DIR, entry.name, 'metadata.json'), 'utf8'));
-      if (metadata.slug) await cleanupSlug(metadata.slug);
-    } catch {
-      // Ignore folders without metadata.
+      try {
+        const metadata = JSON.parse(fs.readFileSync(path.join(META_DIR, entry.name, 'metadata.json'), 'utf8'));
+        if (metadata.slug) await cleanupSlug(metadata.slug);
+      } catch {
+        // Ignore folders without metadata.
+      }
     }
   }
+
+  await cleanupExpiredS3Objects();
+}
+
+function listS3Objects(prefix) {
+  return new Promise((resolve, reject) => {
+    const objects = [];
+    const stream = s3.listObjectsV2(S3_BUCKET, prefix, true);
+
+    stream.on('data', (object) => objects.push(object));
+    stream.on('error', reject);
+    stream.on('end', () => resolve(objects));
+  });
+}
+
+async function cleanupExpiredS3Objects() {
+  if (!s3) return;
+
+  const now = Date.now();
+  const objects = await listS3Objects('attachments/');
+  const expiredObjects = objects.filter((object) => {
+    if (!object.name || !object.lastModified) return false;
+    return now - new Date(object.lastModified).getTime() >= FILE_TTL_MS;
+  });
+
+  if (!expiredObjects.length) return;
+
+  await Promise.all(expiredObjects.map((object) => (
+    s3.removeObject(S3_BUCKET, object.name).catch((error) => {
+      console.error(`Failed to remove expired S3 object ${object.name}`, error);
+    })
+  )));
 }
 
 const upload = multer({
