@@ -116,6 +116,7 @@ function seedConfig() {
 seedConfig();
 
 const app = express();
+app.set('trust proxy', true);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.text({ type: 'text/plain', limit: '2mb' }));
 
@@ -211,6 +212,58 @@ function requireAdmin(req, res, next) {
   if (token !== password) return res.status(401).json({ error: 'Acesso admin negado.' });
 
   next();
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function plainSummary(content) {
+  const summary = String(content || '').replace(/\s+/g, ' ').trim();
+  if (!summary) return 'Realtime notes and temporary file sharing.';
+  return summary.length > 180 ? `${summary.slice(0, 177)}...` : summary;
+}
+
+function absoluteBaseUrl(req) {
+  const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+  return `${protocol.split(',')[0]}://${req.get('host')}`;
+}
+
+function appHtmlWithPreview(req, slug = null) {
+  const template = fs.readFileSync(path.join(APP_PUBLIC_DIR, 'index.html'), 'utf8');
+  const note = slug ? statements.getNote.get(slug) : null;
+  const title = slug ? `MAKPAD - /${slug}` : 'MAKPAD - Realtime Notes';
+  const description = note ? plainSummary(note.content) : 'Realtime notes and temporary file sharing.';
+  const baseUrl = absoluteBaseUrl(req);
+  const pageUrl = slug ? `${baseUrl}/${encodeURI(slug)}` : baseUrl;
+  const imageUrl = `${baseUrl}/icons/makpad.png`;
+  const meta = `
+    <meta name="description" content="${escapeHtml(description)}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="MAKPAD">
+    <meta property="og:title" content="${escapeHtml(title)}">
+    <meta property="og:description" content="${escapeHtml(description)}">
+    <meta property="og:url" content="${escapeHtml(pageUrl)}">
+    <meta property="og:image" content="${escapeHtml(imageUrl)}">
+    <meta property="og:image:width" content="1024">
+    <meta property="og:image:height" content="1024">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="${escapeHtml(title)}">
+    <meta name="twitter:description" content="${escapeHtml(description)}">
+    <meta name="twitter:image" content="${escapeHtml(imageUrl)}">`;
+
+  return template
+    .replace(/<title>.*?<\/title>/, `<title>${escapeHtml(title)}</title>`)
+    .replace('</head>', `${meta}\n</head>`);
+}
+
+function sendAppPage(req, res, slug = null) {
+  res.type('html').send(appHtmlWithPreview(req, slug));
 }
 
 function fileResponse(file) {
@@ -507,7 +560,8 @@ app.get('/makpad-cli.txt', (req, res) => res.sendFile(path.join(SCRIPTS_DIR, 'cl
 app.get('/makpad-ps1.txt', (req, res) => res.sendFile(path.join(SCRIPTS_DIR, 'cli', 'makpad.ps1')));
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(APP_PUBLIC_DIR, 'index.html'));
+  const slug = normalizeSlug(req.path);
+  sendAppPage(req, res, slug);
 });
 
 app.use((err, req, res, next) => {
