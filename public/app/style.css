@@ -129,9 +129,11 @@ body::before {
     box-shadow: 0 0 14px rgba(56, 189, 248, 0.18);
 }
 
-.share-button svg {
-    fill: currentColor;
+.share-button span {
+    background: currentColor;
     height: 18px;
+    mask: url('/assets/icons/share/share.svg') center / contain no-repeat;
+    -webkit-mask: url('/assets/icons/share/share.svg') center / contain no-repeat;
     width: 18px;
 }
 
@@ -186,6 +188,44 @@ body::before {
     height: 24px;
     justify-content: center;
     width: 24px;
+}
+
+.share-icon::before {
+    background: currentColor;
+    content: '';
+    height: 14px;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    width: 14px;
+}
+
+.whatsapp .share-icon::before {
+    mask-image: url('/assets/icons/share/whatsapp.svg');
+    -webkit-mask-image: url('/assets/icons/share/whatsapp.svg');
+}
+
+.telegram .share-icon::before {
+    mask-image: url('/assets/icons/share/telegram.svg');
+    -webkit-mask-image: url('/assets/icons/share/telegram.svg');
+}
+
+.teams .share-icon::before {
+    mask-image: url('/assets/icons/share/teams.svg');
+    -webkit-mask-image: url('/assets/icons/share/teams.svg');
+}
+
+.discord .share-icon::before {
+    mask-image: url('/assets/icons/share/discord.svg');
+    -webkit-mask-image: url('/assets/icons/share/discord.svg');
+}
+
+.copy .share-icon::before {
+    mask-image: url('/assets/icons/share/copy.svg');
+    -webkit-mask-image: url('/assets/icons/share/copy.svg');
 }
 
 .whatsapp .share-icon { background: #25d366; }
