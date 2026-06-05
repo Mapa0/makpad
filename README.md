@@ -20,6 +20,20 @@ The app is local-first in CasaOS:
 
 No external KVDB service is required.
 
+## Project Structure
+
+```text
+src/server/          Express API, SQLite, S3/Garage integration
+public/app/          Main MAKPAD web editor
+public/admin/        MakpadAdmin dashboard
+public/assets/       Icons, favicons, and static media
+scripts/cli/         Linux/macOS and PowerShell CLI clients
+scripts/install/     Public installer scripts
+deploy/casaos/       CasaOS compose files for MAKPAD, Garage, and S3 Manager
+```
+
+Public compatibility routes are preserved. For example, `/app.js`, `/style.css`, `/install.sh`, `/makpad-cli.txt`, and `/icons/...` still work even though their source files now live in organized folders.
+
 ## Storage Layout
 
 Inside the CasaOS host:
@@ -211,6 +225,16 @@ sudo rm -rf /DATA/AppData/makpad
 To also clear all Garage/S3 objects for MAKPAD, delete the objects under the `makpad-attachments` bucket or recreate the bucket.
 
 After cleanup, redeploy/restart the MAKPAD container. The app will recreate `makpad.db` automatically.
+
+## CasaOS Compose Files
+
+The CasaOS manifests live in:
+
+```text
+deploy/casaos/makpad-compose.yml
+deploy/casaos/garage-compose.yml
+deploy/casaos/s3manager-compose.yml
+```
 
 ## Tech Stack
 

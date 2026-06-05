@@ -7,7 +7,12 @@ const Database = require('better-sqlite3');
 const { Client: MinioClient } = require('minio');
 
 const PORT = Number(process.env.PORT || 3000);
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+const ROOT_DIR = path.resolve(__dirname, '..', '..');
+const PUBLIC_DIR = path.join(ROOT_DIR, 'public');
+const APP_PUBLIC_DIR = path.join(PUBLIC_DIR, 'app');
+const ADMIN_PUBLIC_DIR = path.join(PUBLIC_DIR, 'admin');
+const SCRIPTS_DIR = path.join(ROOT_DIR, 'scripts');
+const DATA_DIR = process.env.DATA_DIR || path.join(ROOT_DIR, 'data');
 const DB_PATH = process.env.DB_PATH || path.join(DATA_DIR, 'makpad.db');
 const S3_BUCKET = process.env.S3_BUCKET;
 const MAX_UPLOAD_BUFFER_SIZE = Number(process.env.MAX_UPLOAD_BUFFER_SIZE || 512 * 1024 * 1024);
@@ -484,12 +489,25 @@ app.delete('/api/admin/chats/:slug(*)', requireAdmin, asyncHandler(async (req, r
   res.json({ ok: true });
 }));
 
-app.use(express.static(__dirname));
 app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin.html'));
+  res.sendFile(path.join(ADMIN_PUBLIC_DIR, 'index.html'));
 });
+
+app.use(express.static(PUBLIC_DIR));
+app.use('/icons', express.static(path.join(PUBLIC_DIR, 'assets', 'icons')));
+
+app.get('/app.js', (req, res) => res.sendFile(path.join(APP_PUBLIC_DIR, 'app.js')));
+app.get('/style.css', (req, res) => res.sendFile(path.join(APP_PUBLIC_DIR, 'style.css')));
+app.get('/200.html', (req, res) => res.sendFile(path.join(APP_PUBLIC_DIR, 'index.html')));
+app.get('/admin.js', (req, res) => res.sendFile(path.join(ADMIN_PUBLIC_DIR, 'admin.js')));
+app.get('/admin.css', (req, res) => res.sendFile(path.join(ADMIN_PUBLIC_DIR, 'admin.css')));
+app.get('/install.sh', (req, res) => res.sendFile(path.join(SCRIPTS_DIR, 'install', 'install.sh')));
+app.get('/install.ps1', (req, res) => res.sendFile(path.join(SCRIPTS_DIR, 'install', 'install.ps1')));
+app.get('/makpad-cli.txt', (req, res) => res.sendFile(path.join(SCRIPTS_DIR, 'cli', 'makpad-cli.sh')));
+app.get('/makpad-ps1.txt', (req, res) => res.sendFile(path.join(SCRIPTS_DIR, 'cli', 'makpad.ps1')));
+
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '200.html'));
+  res.sendFile(path.join(APP_PUBLIC_DIR, 'index.html'));
 });
 
 app.use((err, req, res, next) => {

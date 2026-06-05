@@ -2,9 +2,9 @@
   "name": "makpad",
   "version": "1.0.0",
   "description": "Realtime cloud notepad with ephemeral per-path attachments.",
-  "main": "server.js",
+  "main": "src/server/server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node src/server/server.js",
     "test": "node --test"
   },
   "dependencies": {
