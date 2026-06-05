@@ -1,0 +1,67 @@
+name: netdata
+
+services:
+  netdata:
+    image: netdata/netdata:stable
+    container_name: netdata
+    restart: unless-stopped
+    network_mode: host
+    pid: host
+    labels:
+      icon: https://makpad.mapazero.com/icons/netdata.png
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    environment:
+      DO_NOT_TRACK: "1"
+    volumes:
+      - /DATA/AppData/netdata/config:/etc/netdata
+      - /DATA/AppData/netdata/lib:/var/lib/netdata
+      - /DATA/AppData/netdata/cache:/var/cache/netdata
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /:/host/root:ro
+    x-casaos:
+      ports:
+        - container: "19999"
+          description:
+            en_us: Web UI
+      volumes:
+        - container: /etc/netdata
+          description:
+            en_us: Netdata configuration
+        - container: /var/lib/netdata
+          description:
+            en_us: Netdata metrics database
+        - container: /var/cache/netdata
+          description:
+            en_us: Netdata cache
+
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  main: netdata
+  author: Netdata
+  category: Utilities
+  developer: Netdata
+  icon: https://makpad.mapazero.com/icons/netdata.png
+  thumbnail: https://makpad.mapazero.com/icons/netdata.png
+  description:
+    en_us: Real-time host, Docker, CPU, memory, disk, network, and process monitoring.
+  tagline:
+    en_us: Real-time host monitoring dashboard
+  title:
+    en_us: Netdata
+  store_app_id: netdata
+  port_map: "19999"
+  scheme: http
+  index: /
+  is_uncontrolled: false

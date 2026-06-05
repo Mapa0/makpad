@@ -1,0 +1,54 @@
+name: qdirstat
+
+services:
+  qdirstat:
+    image: jlesage/qdirstat:latest
+    container_name: qdirstat
+    restart: unless-stopped
+    ports:
+      - "5801:5800"
+    labels:
+      icon: https://makpad.mapazero.com/icons/qdirstat.png
+    environment:
+      USER_ID: "0"
+      GROUP_ID: "0"
+      TZ: America/Campo_Grande
+      KEEP_APP_RUNNING: "1"
+    volumes:
+      - /DATA/AppData/qdirstat:/config
+      - /:/storage:ro
+    shm_size: "1gb"
+    x-casaos:
+      ports:
+        - container: "5800"
+          description:
+            en_us: Web UI
+      volumes:
+        - container: /config
+          description:
+            en_us: QDirStat configuration
+        - container: /storage
+          description:
+            en_us: Read-only host filesystem scan target
+
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  main: qdirstat
+  author: Jlesage
+  category: Utilities
+  developer: Jlesage
+  icon: https://makpad.mapazero.com/icons/qdirstat.png
+  thumbnail: https://makpad.mapazero.com/icons/qdirstat.png
+  description:
+    en_us: Graphical disk usage analyzer for scanning the host filesystem mounted read-only.
+  tagline:
+    en_us: Find what is using disk space
+  title:
+    en_us: QDirStat
+  store_app_id: qdirstat
+  port_map: "5801"
+  scheme: http
+  index: /
+  is_uncontrolled: false
